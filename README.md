@@ -1,0 +1,1 @@
+# Flowpack.ContentSecurityPolicy
