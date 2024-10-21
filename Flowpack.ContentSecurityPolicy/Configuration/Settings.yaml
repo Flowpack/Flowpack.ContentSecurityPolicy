@@ -1,0 +1,80 @@
+Flowpack:
+  ContentSecurityPolicy:
+    enabled: true
+    report-only: false
+    content-security-policy:
+      default:
+        base-uri:
+          - 'self'
+        connect-src:
+          - 'self'
+        default-src:
+          - 'self'
+        form-action:
+          - 'self'
+        img-src:
+          - 'self'
+        media-src:
+          - 'self'
+        frame-src:
+          - 'self'
+        object-src:
+          - 'self'
+        script-src:
+          - 'self'
+        style-src:
+          - 'self'
+        style-src-attr:
+          - 'self'
+        style-src-elem:
+          - 'self'
+        font-src:
+          - 'self'
+      custom: [ ]
+      backend:
+        base-uri:
+          - 'self'
+        connect-src:
+          - 'self'
+        default-src:
+          - 'self'
+        form-action:
+          - 'self'
+        img-src:
+          - 'self'
+          - 'data:'
+        media-src:
+          - 'self'
+        frame-src:
+          - 'self'
+        object-src:
+          - 'self'
+        script-src:
+          - 'self'
+          - 'unsafe-inline'
+          - 'unsafe-eval'
+        style-src:
+          - 'self'
+          - 'unsafe-inline'
+        style-src-attr:
+          - 'self'
+          - 'unsafe-inline'
+        style-src-elem:
+          - 'self'
+          - 'unsafe-inline'
+        font-src:
+          - 'self'
+          - 'data:'
+      custom-backend: [ ]
+
+Neos:
+  Neos:
+    fusion:
+      autoInclude:
+        Flowpack.ContentSecurityPolicy: true
+  Flow:
+    http:
+      middlewares:
+        'cspHeader':
+          position: 'after routing'
+          middleware: 'Flowpack\ContentSecurityPolicy\Http\CspHeaderMiddleware'
