@@ -31,7 +31,7 @@ class CspConfigCommandController extends CommandController
 
     /**
      * @Flow\InjectConfiguration(path="content-security-policy")
-     * @var mixed[]
+     * @var string[][][]
      */
     protected array $configuration;
 

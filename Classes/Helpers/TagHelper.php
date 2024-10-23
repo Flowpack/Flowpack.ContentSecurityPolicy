@@ -11,14 +11,15 @@ class TagHelper
         string $name,
         string $value = null
     ): bool {
-        if (! $value) {
-            return ! ! preg_match(
+        $value = (string)$value;
+        if ($value === '') {
+            return (bool)preg_match(
                 self::buildMatchAttributeNameReqex($name),
                 $tag
             );
         }
 
-        return ! ! preg_match(
+        return (bool)preg_match(
             self::buildMatchAttributeNameWithSpecificValueReqex(
                 $name,
                 $value
@@ -53,7 +54,7 @@ class TagHelper
         return preg_replace_callback(
             self::buildMatchEndOfOpeningTagReqex(),
             function ($hits) use ($name, $value) {
-                if ($value) {
+                if ((string)$value !== '') {
                     return $hits["start"].
                         ' '.
                         $name.

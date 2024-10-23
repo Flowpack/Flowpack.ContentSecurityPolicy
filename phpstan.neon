@@ -1,0 +1,14 @@
+includes:
+	- phpstan-baseline.neon
+parameters:
+    level: max
+    paths:
+        - Classes
+        - Tests
+    ignoreErrors:
+        -
+            identifier: property.uninitializedReadonly
+        -
+            identifier: property.readOnlyAssignNotInConstructor
+        -
+            identifier: missingType.generics
