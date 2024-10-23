@@ -44,7 +44,7 @@ class CspHeaderMiddleware implements MiddlewareInterface
 
     /**
      * @Flow\InjectConfiguration(path="content-security-policy")
-     * @var mixed[]
+     * @var string[][][]
      */
     protected array $configuration;
 
@@ -107,7 +107,7 @@ class CspHeaderMiddleware implements MiddlewareInterface
 
         return $this->checkTagAndReplaceUsingACallback($tagNames, $markup, function (
             $tagMarkup,
-        ) {
+        ): string {
             if (TagHelper::tagHasAttribute($tagMarkup, self::NONCE)) {
                 return TagHelper::tagChangeAttributeValue($tagMarkup, self::NONCE, $this->nonce->getValue());
             }
@@ -118,9 +118,6 @@ class CspHeaderMiddleware implements MiddlewareInterface
 
     /**
      * @param  string[]  $tagNames
-     * @param  string  $contentMarkup
-     * @param  callable  $hitCallback
-     * @return string
      */
     private function checkTagAndReplaceUsingACallback(
         array $tagNames,
@@ -131,14 +128,10 @@ class CspHeaderMiddleware implements MiddlewareInterface
 
         return preg_replace_callback(
             $regex,
-            function ($hits) use ($hitCallback, $tagNames) {
+            function ($hits) use ($hitCallback) {
                 $tagMarkup = $hits[0];
                 $tagName = $hits[1];
-
-                if (! $hitCallback) {
-                    return $tagMarkup;
-                }
-
+                
                 return call_user_func(
                     $hitCallback,
                     $tagMarkup,

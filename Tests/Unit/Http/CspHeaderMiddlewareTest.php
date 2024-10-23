@@ -30,14 +30,13 @@ class CspHeaderMiddlewareTest extends TestCase
 {
     private readonly CspHeaderMiddleware $middleware;
     private readonly ReflectionClass $middlewareReflection;
-    private readonly ServerRequestInterface|MockObject $requestMock;
-    private readonly RequestHandlerInterface|MockObject $requestHandlerMock;
-    private readonly ResponseInterface|MockObject $responseMock;
-    private readonly LoggerInterface|MockObject $loggerMock;
-    private readonly Nonce|MockObject $nonceMock;
-    private readonly UriInterface|MockObject $uriMock;
-    private readonly PolicyFactory|MockObject $policyFactoryMock;
-    private readonly Policy|MockObject $policyMock;
+    private readonly ServerRequestInterface&MockObject $requestMock;
+    private readonly RequestHandlerInterface&MockObject $requestHandlerMock;
+    private readonly ResponseInterface&MockObject $responseMock;
+    private readonly LoggerInterface&MockObject $loggerMock;
+    private readonly UriInterface&MockObject $uriMock;
+    private readonly PolicyFactory&MockObject $policyFactoryMock;
+    private readonly Policy&MockObject $policyMock;
 
     /**
      * @throws Throwable
@@ -52,7 +51,7 @@ class CspHeaderMiddlewareTest extends TestCase
         $this->requestHandlerMock = $this->createMock(RequestHandlerInterface::class);
         $this->responseMock = $this->createMock(ResponseInterface::class);
         $this->loggerMock = $this->createMock(LoggerInterface::class);
-        $this->nonceMock = $this->createMock(Nonce::class);
+        $nonceMock = $this->createMock(Nonce::class);
         $this->uriMock = $this->createMock(UriInterface::class);
         $this->policyFactoryMock = $this->createMock(PolicyFactory::class);
         $this->policyMock = $this->createMock(Policy::class);
@@ -66,7 +65,7 @@ class CspHeaderMiddlewareTest extends TestCase
         $reflectionProperty->setValue($this->middleware, true);
 
         $reflectionProperty = $this->middlewareReflection->getProperty('nonce');
-        $reflectionProperty->setValue($this->middleware, $this->nonceMock);
+        $reflectionProperty->setValue($this->middleware, $nonceMock);
 
         $reflectionProperty = $this->middlewareReflection->getProperty('policyFactory');
         $reflectionProperty->setValue($this->middleware, $this->policyFactoryMock);
@@ -98,6 +97,8 @@ class CspHeaderMiddlewareTest extends TestCase
         $this->policyFactoryMock->expects($this->once())->method('create')->willThrowException(
             new InvalidPolicyException()
         );
+
+        $this->loggerMock->expects($this->once())->method('critical');
 
         $this->responseMock->expects($this->never())->method('withAddedHeader');
 

@@ -39,7 +39,7 @@ class Directive
 
     public static function isValidDirective(string $directive): bool
     {
-        return in_array($directive, self::VALID_DIRECTIVES);
+        return in_array($directive, self::VALID_DIRECTIVES, true);
     }
 
 }

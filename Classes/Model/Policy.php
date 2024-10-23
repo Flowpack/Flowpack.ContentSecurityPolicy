@@ -27,6 +27,7 @@ class Policy
      */
     protected bool $reportOnly;
 
+    /** @var string[][] */
     private array $directives = [];
 
     private readonly Nonce $nonce;
@@ -49,6 +50,9 @@ class Policy
         return self::SECURITY_HEADER_KEY;
     }
 
+    /**
+     * @return string[][]
+     */
     public function getDirectives(): array
     {
         return $this->directives;
@@ -68,7 +72,7 @@ class Policy
         if (! Directive::isValidDirective($directive)) {
             throw new InvalidDirectiveException($directive);
         }
-        $this->directives[$directive] = array_map(function ($value) use ($directive) {
+        $this->directives[$directive] = array_map(function ($value) {
             return $this->sanitizeValue($value);
         }, $values);
 
@@ -91,7 +95,7 @@ class Policy
 
     private function sanitizeValue(string $value): string
     {
-        if (in_array($value, self::SPECIAL_DIRECTIVES)) {
+        if (in_array($value, self::SPECIAL_DIRECTIVES, true)) {
             return "'$value'";
         }
 

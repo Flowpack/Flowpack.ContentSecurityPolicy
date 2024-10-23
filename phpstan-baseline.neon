@@ -1,0 +1,16 @@
+parameters:
+	ignoreErrors:
+		-
+			message: "#^Method Flowpack\\\\ContentSecurityPolicy\\\\Helpers\\\\TagHelper\\:\\:tagAddAttribute\\(\\) should return string but returns string\\|null\\.$#"
+			count: 1
+			path: Classes/Helpers/TagHelper.php
+
+		-
+			message: "#^Method Flowpack\\\\ContentSecurityPolicy\\\\Helpers\\\\TagHelper\\:\\:tagChangeAttributeValue\\(\\) should return string but returns string\\|null\\.$#"
+			count: 1
+			path: Classes/Helpers/TagHelper.php
+
+		-
+			message: "#^Method Flowpack\\\\ContentSecurityPolicy\\\\Http\\\\CspHeaderMiddleware\\:\\:checkTagAndReplaceUsingACallback\\(\\) should return string but returns string\\|null\\.$#"
+			count: 1
+			path: Classes/Http/CspHeaderMiddleware.php
