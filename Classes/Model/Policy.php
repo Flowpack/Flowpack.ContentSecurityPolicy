@@ -40,14 +40,9 @@ class Policy
         return $this;
     }
 
-    public function isReportOnly(): bool
-    {
-        return $this->reportOnly;
-    }
-
     public function getSecurityHeaderKey(): string
     {
-        if ($this->isReportOnly()) {
+        if ($this->reportOnly) {
             return self::SECURITY_HEADER_KEY_REPORT_ONLY;
         }
 
@@ -59,10 +54,16 @@ class Policy
         return $this->directives;
     }
 
+    public function hasNonceDirectiveValue(): bool
+    {
+        return $this->hasNonceDirectiveValue;
+    }
+
     /**
+     * @param  string[]  $values
      * @throws InvalidDirectiveException
      */
-    public function addDirective(string $directive, $values): self
+    public function addDirective(string $directive, array $values): self
     {
         if (! Directive::isValidDirective($directive)) {
             throw new InvalidDirectiveException($directive);
@@ -72,16 +73,6 @@ class Policy
         }, $values);
 
         return $this;
-    }
-
-    public function getNonce(): Nonce
-    {
-        return $this->nonce;
-    }
-
-    public function hasNonceDirectiveValue(): bool
-    {
-        return $this->hasNonceDirectiveValue;
     }
 
     public function __toString(): string
@@ -95,26 +86,21 @@ class Policy
             return "$directive $value";
         }, $directives, $keys);
 
-        return implode(';', $items).';';
+        return implode('; ', $items).';';
     }
 
     private function sanitizeValue(string $value): string
     {
-        if ($this->isSpecialValue($value)) {
+        if (in_array($value, self::SPECIAL_DIRECTIVES)) {
             return "'$value'";
         }
 
         if ($value === '{nonce}') {
             $this->hasNonceDirectiveValue = true;
 
-            return "'nonce-".$this->getNonce()->getValue()."'";
+            return "'nonce-".$this->nonce->getValue()."'";
         }
 
         return $value;
-    }
-
-    private function isSpecialValue(string $directive): bool
-    {
-        return in_array($directive, self::SPECIAL_DIRECTIVES);
     }
 }

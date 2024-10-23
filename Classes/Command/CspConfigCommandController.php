@@ -25,6 +25,11 @@ class CspConfigCommandController extends CommandController
     protected Nonce $nonce;
 
     /**
+     * @Flow\Inject
+     */
+    protected PolicyFactory $policyFactory;
+
+    /**
      * @Flow\InjectConfiguration(path="content-security-policy")
      * @var mixed[]
      */
@@ -39,13 +44,13 @@ class CspConfigCommandController extends CommandController
     public function showCommand(): void
     {
         try {
-            $backendPolicy = PolicyFactory::create(
+            $backendPolicy = $this->policyFactory->create(
                 $this->nonce,
                 $this->configuration['backend'],
                 $this->configuration['custom-backend']
             );
 
-            $frontendPolicy = PolicyFactory::create(
+            $frontendPolicy = $this->policyFactory->create(
                 $this->nonce,
                 $this->configuration['default'],
                 $this->configuration['custom']
