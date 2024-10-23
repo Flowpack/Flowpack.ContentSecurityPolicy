@@ -7,13 +7,19 @@ namespace Flowpack\ContentSecurityPolicy\Factory;
 use Flowpack\ContentSecurityPolicy\Exceptions\InvalidDirectiveException;
 use Flowpack\ContentSecurityPolicy\Model\Nonce;
 use Flowpack\ContentSecurityPolicy\Model\Policy;
+use Neos\Flow\Annotations as Flow;
 
+/**
+ * @Flow\Scope("singleton")
+ */
 class PolicyFactory
 {
     /**
+     * @param  string[][]  $defaultDirective
+     * @param  string[][]  $customDirective
      * @throws InvalidDirectiveException
      */
-    public static function create(Nonce $nonce, array $defaultDirective, array $customDirective): Policy
+    public function create(Nonce $nonce, array $defaultDirective, array $customDirective): Policy
     {
         $directiveCollections = [$defaultDirective, $customDirective];
         $defaultDirective = array_shift($directiveCollections);

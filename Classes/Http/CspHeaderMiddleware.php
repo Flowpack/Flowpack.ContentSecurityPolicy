@@ -20,6 +20,8 @@ use Psr\Log\LoggerInterface;
 
 class CspHeaderMiddleware implements MiddlewareInterface
 {
+    private const NONCE = 'nonce';
+
     /**
      * @Flow\InjectConfiguration(path="enabled")
      */
@@ -36,6 +38,11 @@ class CspHeaderMiddleware implements MiddlewareInterface
     protected Nonce $nonce;
 
     /**
+     * @Flow\Inject
+     */
+    protected PolicyFactory $policyFactory;
+
+    /**
      * @Flow\InjectConfiguration(path="content-security-policy")
      * @var mixed[]
      */
@@ -47,7 +54,7 @@ class CspHeaderMiddleware implements MiddlewareInterface
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
         $response = $handler->handle($request);
-        if (!$this->enabled) {
+        if (! $this->enabled) {
             return $response;
         }
 
@@ -79,14 +86,14 @@ class CspHeaderMiddleware implements MiddlewareInterface
          * Neos\Neos\Domain\Service\ContentContext at this point as it throws an error.
          */
         if (str_starts_with($request->getUri()->getPath(), '/neos')) {
-            return PolicyFactory::create(
+            return $this->policyFactory->create(
                 $this->nonce,
                 $this->configuration['backend'],
                 $this->configuration['custom-backend']
             );
         }
 
-        return PolicyFactory::create(
+        return $this->policyFactory->create(
             $this->nonce,
             $this->configuration['default'],
             $this->configuration['custom']
@@ -101,11 +108,11 @@ class CspHeaderMiddleware implements MiddlewareInterface
         return $this->checkTagAndReplaceUsingACallback($tagNames, $markup, function (
             $tagMarkup,
         ) {
-            if (TagHelper::tagHasAttribute($tagMarkup, TagHelper::NONCE)) {
-                return TagHelper::tagChangeAttributeValue($tagMarkup, TagHelper::NONCE, $this->nonce->getValue());
+            if (TagHelper::tagHasAttribute($tagMarkup, self::NONCE)) {
+                return TagHelper::tagChangeAttributeValue($tagMarkup, self::NONCE, $this->nonce->getValue());
             }
 
-            return TagHelper::tagAddAttribute($tagMarkup, TagHelper::NONCE, $this->nonce->getValue());
+            return TagHelper::tagAddAttribute($tagMarkup, self::NONCE, $this->nonce->getValue());
         });
     }
 

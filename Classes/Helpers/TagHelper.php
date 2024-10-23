@@ -6,8 +6,6 @@ namespace Flowpack\ContentSecurityPolicy\Helpers;
 
 class TagHelper
 {
-    public const NONCE = 'nonce';
-
     public static function tagHasAttribute(
         string $tag,
         string $name,
@@ -18,15 +16,15 @@ class TagHelper
                 self::buildMatchAttributeNameReqex($name),
                 $tag
             );
-        } else {
-            return ! ! preg_match(
-                self::buildMatchAttributeNameWithSpecificValueReqex(
-                    $name,
-                    $value
-                ),
-                $tag
-            );
         }
+
+        return ! ! preg_match(
+            self::buildMatchAttributeNameWithSpecificValueReqex(
+                $name,
+                $value
+            ),
+            $tag
+        );
     }
 
     public static function tagChangeAttributeValue(
@@ -63,9 +61,9 @@ class TagHelper
                         $value.
                         '"'.
                         $hits["end"];
-                } else {
-                    return $hits["start"].' '.$name.$hits["end"];
                 }
+
+                return $hits["start"].' '.$name.$hits["end"];
             },
             $tag
         );
@@ -82,9 +80,8 @@ class TagHelper
         return '/(?<start><[a-z]+.*?)(?<end>>|\/>)/';
     }
 
-    private static function buildMatchAttributeNameWithAnyValueReqex(
-        string $name
-    ): string {
+    private static function buildMatchAttributeNameWithAnyValueReqex(string $name): string
+    {
         $nameQuoted = self::escapeReqexCharsInString($name);
 
         return '/(?<pre><.*? )(?<name>'.
