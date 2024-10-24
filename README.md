@@ -1,15 +1,17 @@
 # Flowpack.ContentSecurityPolicy
 
 <!-- TOC -->
+
 * [Flowpack.ContentSecurityPolicy](#flowpackcontentsecuritypolicy)
-  * [Introduction](#introduction)
-  * [Usage](#usage)
-  * [Custom directives and values](#custom-directives-and-values)
-    * [Show CSP configuration](#show-csp-configuration)
-  * [Disable or report only](#disable-or-report-only)
-  * [Nonce](#nonce)
-  * [Backend](#backend)
-  * [Thank you](#thank-you)
+    * [Introduction](#introduction)
+    * [Usage](#usage)
+    * [Custom directives and values](#custom-directives-and-values)
+        * [Show CSP configuration](#show-csp-configuration)
+    * [Disable or report only](#disable-or-report-only)
+    * [Nonce](#nonce)
+    * [Backend](#backend)
+    * [Thank you](#thank-you)
+
 <!-- TOC -->
 
 ## Introduction
@@ -31,38 +33,38 @@ It will use the default configuration which looks like this:
 
 ```yaml
 Flowpack:
-    ContentSecurityPolicy:
-        enabled: true
-        report-only: false
-        content-security-policy:
-            default:
-              base-uri:
-                - 'self'
-              connect-src:
-                - 'self'
-              default-src:
-                - 'self'
-              form-action:
-                - 'self'
-              img-src:
-                - 'self'
-              media-src:
-                - 'self'
-              frame-src:
-                - 'self'
-              object-src:
-                - 'self'
-              script-src:
-                - 'self'
-              style-src:
-                - 'self'
-              style-src-attr:
-                - 'self'
-              style-src-elem:
-                - 'self'
-              font-src:
-                - 'self'
-            custom: [ ]
+  ContentSecurityPolicy:
+    enabled: true
+    report-only: false
+    content-security-policy:
+      default:
+        base-uri:
+          - 'self'
+        connect-src:
+          - 'self'
+        default-src:
+          - 'self'
+        form-action:
+          - 'self'
+        img-src:
+          - 'self'
+        media-src:
+          - 'self'
+        frame-src:
+          - 'self'
+        object-src:
+          - 'self'
+        script-src:
+          - 'self'
+        style-src:
+          - 'self'
+        style-src-attr:
+          - 'self'
+        style-src-elem:
+          - 'self'
+        font-src:
+          - 'self'
+      custom: [ ]
 ```
 
 Now only resources from the same origin are allowed for the most common directives.
@@ -70,17 +72,20 @@ It is enabled by default and the report-only mode is disabled.
 
 ## Custom directives and values
 
+If you want to override the default config don't forget to add this package as a dependency in the composer.json file
+of your package. Otherwise, it might not work because of the loading order of the packages.
+
 The default configuration will probably not suit your needs so you can add your own configuration by adding the array
 custom like this in your own yaml configuration files:
 
 ```yaml
 Flowpack:
-    ContentSecurityPolicy:
-        content-security-policy:
-            custom:
-                frame-src:
-                    - 'https://www.youtube.com'
-                    - 'https://staticxx.facebook.com'
+  ContentSecurityPolicy:
+    content-security-policy:
+      custom:
+        frame-src:
+          - 'https://www.youtube.com'
+          - 'https://staticxx.facebook.com'
 ```
 
 If you fully want to override the entire default config then just override the default key in yaml.
@@ -103,11 +108,11 @@ To do this simply add `{nonce}` as an option in a directive. Like this:
 
 ```yaml
 Flowpack:
-    ContentSecurityPolicy:
-        content-security-policy:
-            custom:
-                script-src:
-                    - '{nonce}'
+  ContentSecurityPolicy:
+    content-security-policy:
+      custom:
+        script-src:
+          - '{nonce}'
 ```
 
 Now the header will include a `nonce-automatedgeneratedrandomstring` in the script-src directive.
@@ -117,7 +122,7 @@ The nonce will be automatically added to all your script/style tags.
 
 ## Backend
 
-Due to the current nature of the Neos backend being rendered a bit different then the frontend a separate policy is 
+Due to the current nature of the Neos backend being rendered a bit different then the frontend a separate policy is
 added for the backend.
 I currently have found no suitable way the add the nonce in the inline scripts in the Neos UI package.
 So the CSP for the backend looks like this:
