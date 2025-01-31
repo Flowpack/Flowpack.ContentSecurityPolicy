@@ -1,40 +1,40 @@
 {
-    "description": "Configure your content-security-policy header easily with yaml.",
-    "type": "neos-package",
-    "name": "flowpack/content-security-policy",
-    "license": [
-        "MIT"
-    ],
-    "require": {
-        "php": "^8.1",
-        "neos/flow": "^8.3"
-    },
-    "autoload": {
-        "psr-4": {
-            "Flowpack\\ContentSecurityPolicy\\": "Classes/"
-        }
-    },
-    "autoload-dev": {
-        "psr-4": {
-            "Flowpack\\ContentSecurityPolicy\\Tests\\": "Tests/"
-        }
-    },
-    "extra": {
-        "neos": {
-            "package-key": "Flowpack.ContentSecurityPolicy"
-        }
-    },
-    "config": {
-        "allow-plugins": {
-            "neos/composer-plugin": true,
-            "phpstan/extension-installer": true
-        }
-    },
-    "require-dev": {
-        "phpunit/phpunit": "^11.4",
-        "phpstan/phpstan": "^1.12",
-        "phpstan/phpstan-phpunit": "^1.4",
-        "phpstan/extension-installer": "^1.4",
-        "phpstan/phpstan-strict-rules": "^1.6"
+  "description": "Configure your content-security-policy header easily with yaml.",
+  "type": "neos-package",
+  "name": "flowpack/content-security-policy",
+  "license": [
+    "MIT"
+  ],
+  "require": {
+    "php": "^8.1",
+    "neos/flow": "^8.3 || ^9.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "Flowpack\\ContentSecurityPolicy\\": "Classes/"
     }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Flowpack\\ContentSecurityPolicy\\Tests\\": "Tests/"
+    }
+  },
+  "extra": {
+    "neos": {
+      "package-key": "Flowpack.ContentSecurityPolicy"
+    }
+  },
+  "config": {
+    "allow-plugins": {
+      "neos/composer-plugin": true,
+      "phpstan/extension-installer": true
+    }
+  },
+  "require-dev": {
+    "phpunit/phpunit": "^11.4",
+    "phpstan/phpstan": "^1.12",
+    "phpstan/phpstan-phpunit": "^1.4",
+    "phpstan/extension-installer": "^1.4",
+    "phpstan/phpstan-strict-rules": "^1.6"
+  }
 }
