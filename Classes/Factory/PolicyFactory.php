@@ -15,27 +15,28 @@ use Neos\Flow\Annotations as Flow;
 class PolicyFactory
 {
     /**
-     * @param  string[][]  $defaultDirective
-     * @param  string[][]  $customDirective
+     * @param string[][] $defaultDirectives
+     * @param string[][] $customDirectives
      * @throws InvalidDirectiveException
      */
-    public function create(Nonce $nonce, array $defaultDirective, array $customDirective): Policy
+    public function create(Nonce $nonce, array $defaultDirectives, array $customDirectives): Policy
     {
-        $directiveCollections = [$defaultDirective, $customDirective];
-        $defaultDirective = array_shift($directiveCollections);
-
-        array_walk($defaultDirective, function (array &$item, string $key) use ($directiveCollections) {
-            foreach ($directiveCollections as $collection) {
-                if (array_key_exists($key, $collection)) {
-                    $item = array_unique([...$item, ...$collection[$key]]);
-                }
+        $resultDirectives = $defaultDirectives;
+        foreach ($customDirectives as $key => $customDirective) {
+            if (array_key_exists($key, $resultDirectives)) {
+                $resultDirectives[$key] = array_merge($resultDirectives[$key], $customDirective);
+            } else {
+                // Custom directive is not present in default, still needs to be added.
+                $resultDirectives[$key] = $customDirective;
             }
-        });
+
+            $resultDirectives[$key] = array_unique($resultDirectives[$key]);
+        }
 
         $policy = new Policy();
         $policy->setNonce($nonce);
 
-        foreach ($defaultDirective as $directive => $values) {
+        foreach ($resultDirectives as $directive => $values) {
             $policy->addDirective($directive, $values);
         }
 
