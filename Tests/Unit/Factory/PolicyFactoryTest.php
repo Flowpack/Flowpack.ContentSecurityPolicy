@@ -11,7 +11,10 @@ use Flowpack\ContentSecurityPolicy\Model\Nonce;
 use Flowpack\ContentSecurityPolicy\Model\Policy;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\UsesClass;
+use PHPUnit\Framework\MockObject\MockObject;
 use PHPUnit\Framework\TestCase;
+use Psr\Log\LoggerInterface;
+use ReflectionClass;
 
 #[CoversClass(PolicyFactory::class)]
 #[UsesClass(Policy::class)]
@@ -19,9 +22,24 @@ use PHPUnit\Framework\TestCase;
 #[UsesClass(InvalidDirectiveException::class)]
 class PolicyFactoryTest extends TestCase
 {
+    private readonly LoggerInterface&MockObject $loggerMock;
+    private readonly PolicyFactory $policyFactory;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->loggerMock = $this->createMock(LoggerInterface::class);
+
+        $this->policyFactory = new PolicyFactory();
+
+        $this->policyFactoryReflection = new ReflectionClass($this->policyFactory);
+        $this->policyFactoryReflection->getProperty('logger')->setValue($this->policyFactory, $this->loggerMock);
+        $this->policyFactoryReflection->getProperty('throwInvalidDirectiveException')->setValue($this->policyFactory, true);
+    }
+
     public function testCreateShouldReturnPolicyAndMergeCustomWithDefaultDirective(): void
     {
-        $policyFactory = new PolicyFactory();
         $nonceMock = $this->createMock(Nonce::class);
 
         $defaultDirective = [
@@ -48,14 +66,13 @@ class PolicyFactoryTest extends TestCase
             ],
         ];
 
-        $result = $policyFactory->create($nonceMock, $defaultDirective, $customDirective);
+        $result = $this->policyFactory->create($nonceMock, $defaultDirective, $customDirective);
 
         self::assertSame($expected, $result->getDirectives());
     }
 
     public function testCreateShouldReturnPolicyAndHandleSpecialDirectives(): void
     {
-        $policyFactory = new PolicyFactory();
         $nonceMock = $this->createMock(Nonce::class);
 
         $defaultDirective = [
@@ -73,14 +90,13 @@ class PolicyFactoryTest extends TestCase
             ],
         ];
 
-        $result = $policyFactory->create($nonceMock, $defaultDirective, $customDirective);
+        $result = $this->policyFactory->create($nonceMock, $defaultDirective, $customDirective);
 
         self::assertSame($expected, $result->getDirectives());
     }
 
     public function testCreateShouldFailWithInvalidDirective(): void
     {
-        $policyFactory = new PolicyFactory();
         $nonceMock = $this->createMock(Nonce::class);
 
         $defaultDirective = [
@@ -94,12 +110,32 @@ class PolicyFactoryTest extends TestCase
         $customDirective = [];
 
         $this->expectException(InvalidDirectiveException::class);
-        $policyFactory->create($nonceMock, $defaultDirective, $customDirective);
+        $this->policyFactory->create($nonceMock, $defaultDirective, $customDirective);
+    }
+
+    public function testCreateShouldLogInvalidDirectiveInProduction(): void
+    {
+        $nonceMock = $this->createMock(Nonce::class);
+        $this->policyFactoryReflection->getProperty('throwInvalidDirectiveException')->setValue($this->policyFactory, false);
+
+        $defaultDirective = [
+            'invalid' => [
+                'self',
+            ],
+            'script-src' => [
+                'self',
+            ],
+        ];
+        $customDirective = [];
+
+        $this->loggerMock->expects($this->once())->method('critical');
+        $this->policyFactory->create($nonceMock, $defaultDirective, $customDirective);
+
+        $this->policyFactoryReflection->getProperty('throwInvalidDirectiveException')->setValue($this->policyFactory, true);
     }
 
     public function testCreateShouldReturnPolicyWithUniqueValues(): void
     {
-        $policyFactory = new PolicyFactory();
         $nonceMock = $this->createMock(Nonce::class);
 
         $defaultDirective = [
@@ -129,14 +165,13 @@ class PolicyFactoryTest extends TestCase
             ],
         ];
 
-        $result = $policyFactory->create($nonceMock, $defaultDirective, $customDirective);
+        $result = $this->policyFactory->create($nonceMock, $defaultDirective, $customDirective);
 
         self::assertSame($expected, $result->getDirectives());
     }
 
     public function testCreateShouldAddDirectiveWhichIsPresentInCustomButNotDefaultConfiguration(): void
     {
-        $policyFactory = new PolicyFactory();
         $nonceMock = $this->createMock(Nonce::class);
 
         $defaultDirective = [
@@ -165,7 +200,7 @@ class PolicyFactoryTest extends TestCase
             ],
         ];
 
-        $result = $policyFactory->create($nonceMock, $defaultDirective, $customDirective);
+        $result = $this->policyFactory->create($nonceMock, $defaultDirective, $customDirective);
 
         self::assertSame($expected, $result->getDirectives());
     }

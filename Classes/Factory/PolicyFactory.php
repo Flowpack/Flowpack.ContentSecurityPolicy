@@ -4,10 +4,13 @@ declare(strict_types=1);
 
 namespace Flowpack\ContentSecurityPolicy\Factory;
 
+use Flowpack\ContentSecurityPolicy\Exceptions\DirectivesNormalizerException;
 use Flowpack\ContentSecurityPolicy\Exceptions\InvalidDirectiveException;
+use Flowpack\ContentSecurityPolicy\Helpers\DirectivesNormalizer;
 use Flowpack\ContentSecurityPolicy\Model\Nonce;
 use Flowpack\ContentSecurityPolicy\Model\Policy;
 use Neos\Flow\Annotations as Flow;
+use Psr\Log\LoggerInterface;
 
 /**
  * @Flow\Scope("singleton")
@@ -15,21 +18,39 @@ use Neos\Flow\Annotations as Flow;
 class PolicyFactory
 {
     /**
-     * @param string[][] $defaultDirectives
-     * @param string[][] $customDirectives
+     * @Flow\InjectConfiguration(path="throw-invalid-directive-exception")
+     */
+    protected bool $throwInvalidDirectiveException;
+
+    /**
+     * @Flow\Inject
+     */
+    protected LoggerInterface $logger;
+
+    /**
+     * @Flow\Inject
+     *
+     */
+
+    /**
+     * @param array<string, array<string|int, string|bool>> $defaultDirectives
+     * @param array<string, array<string|int, string|bool>> $customDirectives
      * @throws InvalidDirectiveException
+     * @throws DirectivesNormalizerException
      */
     public function create(Nonce $nonce, array $defaultDirectives, array $customDirectives): Policy
     {
-        $resultDirectives = $defaultDirectives;
-        foreach ($customDirectives as $key => $customDirective) {
+        $normalizedDefaultDirectives = DirectivesNormalizer::normalize($defaultDirectives, $this->logger);
+        $normalizedCustomDirectives = DirectivesNormalizer::normalize($customDirectives, $this->logger);
+
+        $resultDirectives = $normalizedDefaultDirectives;
+        foreach ($normalizedCustomDirectives as $key => $customDirective) {
             if (array_key_exists($key, $resultDirectives)) {
                 $resultDirectives[$key] = array_merge($resultDirectives[$key], $customDirective);
             } else {
                 // Custom directive is not present in default, still needs to be added.
                 $resultDirectives[$key] = $customDirective;
             }
-
             $resultDirectives[$key] = array_unique($resultDirectives[$key]);
         }
 
@@ -37,7 +58,20 @@ class PolicyFactory
         $policy->setNonce($nonce);
 
         foreach ($resultDirectives as $directive => $values) {
-            $policy->addDirective($directive, $values);
+            try {
+                $policy->addDirective($directive, $values);
+            } catch (InvalidDirectiveException $e
+            ) {
+                if ($this->throwInvalidDirectiveException) {
+                    // For development we want to make sure directives are configured correctly.
+                    throw $e;
+                } else {
+                    // In production we just log the error and continue. If a directive is invalid, we still
+                    // want to apply the rest of the policy.
+                    $this->logger->critical($e->getMessage());
+                    continue;
+                }
+            }
         }
 
         return $policy;

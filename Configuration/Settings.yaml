@@ -2,69 +2,70 @@ Flowpack:
   ContentSecurityPolicy:
     enabled: true
     report-only: false
+    throw-invalid-directive-exception: true
     content-security-policy:
       default:
         base-uri:
-          - 'self'
+         'self': true
         connect-src:
-          - 'self'
+          'self': true
         default-src:
-          - 'self'
+          'self': true
         form-action:
-          - 'self'
+          'self': true
         img-src:
-          - 'self'
+          'self': true
         media-src:
-          - 'self'
+          'self': true
         frame-src:
-          - 'self'
+          'self': true
         object-src:
-          - 'self'
+          'self': true
         script-src:
-          - 'self'
+          'self': true
         style-src:
-          - 'self'
+          'self': true
         style-src-attr:
-          - 'self'
+          'self': true
         style-src-elem:
-          - 'self'
+          'self': true
         font-src:
-          - 'self'
+          'self': true
       custom: [ ]
       backend:
         base-uri:
-          - 'self'
+          'self': true
         connect-src:
-          - 'self'
+          'self': true
         default-src:
-          - 'self'
+          'self': true
         form-action:
-          - 'self'
+          'self': true
         img-src:
-          - 'self'
-          - 'data:'
+          'self': true
+          'data:': true
         media-src:
-          - 'self'
+          'self': true
         frame-src:
-          - 'self'
+          'self': true
         object-src:
-          - 'self'
+          'self': true
         script-src:
-          - 'self'
-          - 'unsafe-inline'
-          - 'unsafe-eval'
+          'self': true
+          'unsafe-inline': true
+          'unsafe-eval': true
         style-src:
-          - 'self'
-          - 'unsafe-inline'
+          'self': true
+          'unsafe-inline': true
         style-src-attr:
-          - 'self'
-          - 'unsafe-inline'
+          'self': true
+          'unsafe-inline': true
         style-src-elem:
-          - 'self'
-          - 'unsafe-inline'
+          'self': true
+          'unsafe-inline': true
         font-src:
-          - 'self'
-          - 'data:'
+          'self': true
+          'data:': true
       custom-backend: [ ]
 
 Neos:

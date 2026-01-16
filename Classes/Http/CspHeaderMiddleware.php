@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Flowpack\ContentSecurityPolicy\Http;
 
 use Exception;
+use Flowpack\ContentSecurityPolicy\Exceptions\DirectivesNormalizerException;
 use Flowpack\ContentSecurityPolicy\Exceptions\InvalidDirectiveException;
 use Flowpack\ContentSecurityPolicy\Factory\PolicyFactory;
 use Flowpack\ContentSecurityPolicy\Helpers\TagHelper;
@@ -16,7 +17,6 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
-use Psr\Log\LoggerInterface;
 
 class CspHeaderMiddleware implements MiddlewareInterface
 {
@@ -30,11 +30,6 @@ class CspHeaderMiddleware implements MiddlewareInterface
     /**
      * @Flow\Inject
      */
-    protected LoggerInterface $logger;
-
-    /**
-     * @Flow\Inject
-     */
     protected Nonce $nonce;
 
     /**
@@ -44,12 +39,14 @@ class CspHeaderMiddleware implements MiddlewareInterface
 
     /**
      * @Flow\InjectConfiguration(path="content-security-policy")
-     * @var string[][][]
+     * @var array<string, array<string, array<string|int, string|bool>>>
      */
     protected array $configuration;
 
     /**
      * @inheritDoc
+     * @throws InvalidDirectiveException
+     * @throws DirectivesNormalizerException
      */
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
@@ -58,13 +55,7 @@ class CspHeaderMiddleware implements MiddlewareInterface
             return $response;
         }
 
-        try {
-            $policy = $this->getPolicyByCurrentContext($request);
-        } catch (Exception $exception) {
-            $this->logger->critical($exception->getMessage(), ['exception' => $exception]);
-
-            return $response;
-        }
+        $policy = $this->getPolicyByCurrentContext($request);
 
         if ($policy->hasNonceDirectiveValue()) {
             $body = $response->getBody();
@@ -78,6 +69,7 @@ class CspHeaderMiddleware implements MiddlewareInterface
 
     /**
      * @throws InvalidDirectiveException
+     * @throws DirectivesNormalizerException
      */
     private function getPolicyByCurrentContext(ServerRequestInterface $request): Policy
     {
@@ -131,7 +123,7 @@ class CspHeaderMiddleware implements MiddlewareInterface
             function ($hits) use ($hitCallback) {
                 $tagMarkup = $hits[0];
                 $tagName = $hits[1];
-                
+
                 return call_user_func(
                     $hitCallback,
                     $tagMarkup,

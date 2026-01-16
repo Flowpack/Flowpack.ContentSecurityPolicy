@@ -39,36 +39,54 @@ Flowpack:
     content-security-policy:
       default:
         base-uri:
-          - 'self'
+          'self': true
         connect-src:
-          - 'self'
+          'self': true
         default-src:
-          - 'self'
+          'self': true
         form-action:
-          - 'self'
+          'self': true
         img-src:
-          - 'self'
+          'self': true
         media-src:
-          - 'self'
+          'self': true
         frame-src:
-          - 'self'
+          'self': true
         object-src:
-          - 'self'
+          'self': true
         script-src:
-          - 'self'
+          'self': true
         style-src:
-          - 'self'
+          'self': true
         style-src-attr:
-          - 'self'
+          'self': true
         style-src-elem:
-          - 'self'
+          'self': true
         font-src:
-          - 'self'
+          'self': true
       custom: [ ]
 ```
 
 Now only resources from the same origin are allowed for the most common directives.
 It is enabled by default and the report-only mode is disabled.
+
+## Deprecated Configuration
+
+Make sure to change any old configuration to the new object format. **Support for the old list format will be removed in future versions.**
+
+The new config allows to merge configurations from different packages/yaml files.
+
+```yaml
+frame-src:
+    # Deprecated list format
+    # - 'https://www.youtube.com':
+    # - 'https://staticxx.facebook.com':
+    
+    # New object format
+    'https://www.youtube.com': true
+    'https://staticxx.facebook.com': true
+```
+
 
 ## Custom directives and values
 
@@ -84,8 +102,8 @@ Flowpack:
     content-security-policy:
       custom:
         frame-src:
-          - 'https://www.youtube.com'
-          - 'https://staticxx.facebook.com'
+          'https://www.youtube.com': true
+          'https://staticxx.facebook.com': true
 ```
 
 If you fully want to override the entire default config then just override the default key in yaml.
@@ -112,7 +130,7 @@ Flowpack:
     content-security-policy:
       custom:
         script-src:
-          - '{nonce}'
+          '{nonce}': true
 ```
 
 Now the header will include a `nonce-automatedgeneratedrandomstring` in the script-src directive.
@@ -133,38 +151,38 @@ Flowpack:
     content-security-policy:
       backend:
         base-uri:
-          - 'self'
+          'self': true
         connect-src:
-          - 'self'
+          'self': true
         default-src:
-          - 'self'
+          'self': true
         form-action:
-          - 'self'
+          'self': true
         img-src:
-          - 'self'
-          - 'data:'
+          'self': true
+          'data:': true
         media-src:
-          - 'self'
+          'self': true
         frame-src:
-          - 'self'
+          'self': true
         object-src:
-          - 'self'
+          'self': true
         script-src:
-          - 'self'
-          - 'unsafe-inline'
-          - 'unsafe-eval'
+          'self': true
+          'unsafe-inline': true
+          'unsafe-eval': true
         style-src:
-          - 'self'
-          - 'unsafe-inline'
+          'self': true
+          'unsafe-inline': true
         style-src-attr:
-          - 'self'
-          - 'unsafe-inline'
+          'self': true
+          'unsafe-inline': true
         style-src-elem:
-          - 'self'
-          - 'unsafe-inline'
+          'self': true
+          'unsafe-inline': true
         font-src:
-          - 'self'
-          - 'data:'
+          'self': true
+          'data:': true
       custom-backend: [ ]
 ```
 

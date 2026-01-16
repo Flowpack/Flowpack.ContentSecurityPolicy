@@ -11,6 +11,7 @@ use Flowpack\ContentSecurityPolicy\Model\Policy;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\TestCase;
+use Psr\Log\LoggerInterface;
 use ReflectionClass;
 
 #[CoversClass(Policy::class)]
@@ -25,12 +26,16 @@ class PolicyTest extends TestCase
     {
         parent::setUp();
 
+        $this->loggerMock = $this->createMock(LoggerInterface::class);
+
         $this->policy = new Policy();
-        $nonceMock = $this->createMock(Nonce::class);
-        $this->policy->setNonce($nonceMock);
 
         $this->policyReflection = new ReflectionClass($this->policy);
+
         $this->policyReflection->getProperty('reportOnly')->setValue($this->policy, false);
+
+        $nonceMock = $this->createMock(Nonce::class);
+        $this->policy->setNonce($nonceMock);
     }
 
     public function testGetSecurityHeaderKeyWithReportOnlyEnabled(): void
