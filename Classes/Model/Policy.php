@@ -6,6 +6,7 @@ namespace Flowpack\ContentSecurityPolicy\Model;
 
 use Flowpack\ContentSecurityPolicy\Exceptions\InvalidDirectiveException;
 use Neos\Flow\Annotations as Flow;
+use Psr\Log\LoggerInterface;
 
 class Policy
 {
