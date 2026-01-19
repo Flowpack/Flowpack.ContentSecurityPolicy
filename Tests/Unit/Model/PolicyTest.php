@@ -11,7 +11,6 @@ use Flowpack\ContentSecurityPolicy\Model\Policy;
 use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\UsesClass;
 use PHPUnit\Framework\TestCase;
-use Psr\Log\LoggerInterface;
 use ReflectionClass;
 
 #[CoversClass(Policy::class)]
@@ -25,8 +24,6 @@ class PolicyTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-
-        $this->loggerMock = $this->createMock(LoggerInterface::class);
 
         $this->policy = new Policy();
 

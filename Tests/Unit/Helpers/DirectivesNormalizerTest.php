@@ -15,6 +15,7 @@ use Psr\Log\LoggerInterface;
 class DirectivesNormalizerTest extends TestCase
 {
     private readonly LoggerInterface&MockObject $loggerMock;
+
     protected function setUp(): void
     {
         parent::setUp();
@@ -167,6 +168,7 @@ class DirectivesNormalizerTest extends TestCase
 
         self::assertSame($expected, $actual);
 
+        // @phpstan-ignore argument.type
         $actual = DirectivesNormalizer::normalize([
             'base-uri',
             'script-src' => [],

@@ -9,7 +9,7 @@ class TagHelper
     public static function tagHasAttribute(
         string $tag,
         string $name,
-        string $value = null
+        ?string $value = null
     ): bool {
         $value = (string)$value;
         if ($value === '') {
@@ -36,10 +36,10 @@ class TagHelper
         return preg_replace_callback(
             self::buildMatchAttributeNameWithAnyValueReqex($name),
             function ($hits) use ($newValue) {
-                return $hits["pre"].
-                    $hits["name"].
-                    $hits["glue"].
-                    $newValue.
+                return $hits["pre"] .
+                    $hits["name"] .
+                    $hits["glue"] .
+                    $newValue .
                     $hits["post"];
             },
             $tag
@@ -49,22 +49,22 @@ class TagHelper
     public static function tagAddAttribute(
         string $tag,
         string $name,
-        string $value = null
+        ?string $value = null
     ): string {
         return preg_replace_callback(
             self::buildMatchEndOfOpeningTagReqex(),
             function ($hits) use ($name, $value) {
                 if ((string)$value !== '') {
-                    return $hits["start"].
-                        ' '.
-                        $name.
-                        '="'.
-                        $value.
-                        '"'.
+                    return $hits["start"] .
+                        ' ' .
+                        $name .
+                        '="' .
+                        $value .
+                        '"' .
                         $hits["end"];
                 }
 
-                return $hits["start"].' '.$name.$hits["end"];
+                return $hits["start"] . ' ' . $name . $hits["end"];
             },
             $tag
         );
@@ -85,8 +85,8 @@ class TagHelper
     {
         $nameQuoted = self::escapeReqexCharsInString($name);
 
-        return '/(?<pre><.*? )(?<name>'.
-            $nameQuoted.
+        return '/(?<pre><.*? )(?<name>' .
+            $nameQuoted .
             ')(?<glue>=")(?<value>.*?)(?<post>".*?>)/';
     }
 
@@ -94,7 +94,7 @@ class TagHelper
     {
         $nameQuoted = self::escapeReqexCharsInString($name);
 
-        return '/(?<pre><.*? )(?<name>'.$nameQuoted.')(?<post>.*?>)/';
+        return '/(?<pre><.*? )(?<name>' . $nameQuoted . ')(?<post>.*?>)/';
     }
 
     private static function buildMatchAttributeNameWithSpecificValueReqex(
@@ -104,10 +104,10 @@ class TagHelper
         $nameQuoted = self::escapeReqexCharsInString($name);
         $valueQuoted = self::escapeReqexCharsInString($value);
 
-        return '/(?<pre><.*? )(?<name>'.
-            $nameQuoted.
-            ')(?<glue>=")(?<value>'.
-            $valueQuoted.
+        return '/(?<pre><.*? )(?<name>' .
+            $nameQuoted .
+            ')(?<glue>=")(?<value>' .
+            $valueQuoted .
             ')(?<post>".*?>)/';
     }
 }
