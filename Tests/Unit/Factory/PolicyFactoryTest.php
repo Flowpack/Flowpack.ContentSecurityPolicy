@@ -6,6 +6,7 @@ namespace Unit\Factory;
 
 use Flowpack\ContentSecurityPolicy\Exceptions\InvalidDirectiveException;
 use Flowpack\ContentSecurityPolicy\Factory\PolicyFactory;
+use Flowpack\ContentSecurityPolicy\Helpers\DirectivesNormalizer;
 use Flowpack\ContentSecurityPolicy\Model\Directive;
 use Flowpack\ContentSecurityPolicy\Model\Nonce;
 use Flowpack\ContentSecurityPolicy\Model\Policy;
@@ -20,6 +21,7 @@ use ReflectionClass;
 #[UsesClass(Policy::class)]
 #[UsesClass(Directive::class)]
 #[UsesClass(InvalidDirectiveException::class)]
+#[UsesClass(DirectivesNormalizer::class)]
 class PolicyFactoryTest extends TestCase
 {
     private readonly LoggerInterface&MockObject $loggerMock;

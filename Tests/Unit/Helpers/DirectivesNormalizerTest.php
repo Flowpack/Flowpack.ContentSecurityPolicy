@@ -12,6 +12,7 @@ use PHPUnit\Framework\TestCase;
 use Psr\Log\LoggerInterface;
 
 #[CoversClass(DirectivesNormalizer::class)]
+#[CoversClass(DirectivesNormalizerException::class)]
 class DirectivesNormalizerTest extends TestCase
 {
     private readonly LoggerInterface&MockObject $loggerMock;
