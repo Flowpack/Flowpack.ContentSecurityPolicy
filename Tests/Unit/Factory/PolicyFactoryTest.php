@@ -6,6 +6,7 @@ namespace Unit\Factory;
 
 use Flowpack\ContentSecurityPolicy\Exceptions\InvalidDirectiveException;
 use Flowpack\ContentSecurityPolicy\Factory\PolicyFactory;
+use Flowpack\ContentSecurityPolicy\Helpers\DirectivesNormalizer;
 use Flowpack\ContentSecurityPolicy\Model\Directive;
 use Flowpack\ContentSecurityPolicy\Model\Nonce;
 use Flowpack\ContentSecurityPolicy\Model\Policy;
@@ -20,10 +21,12 @@ use ReflectionClass;
 #[UsesClass(Policy::class)]
 #[UsesClass(Directive::class)]
 #[UsesClass(InvalidDirectiveException::class)]
+#[UsesClass(DirectivesNormalizer::class)]
 class PolicyFactoryTest extends TestCase
 {
     private readonly LoggerInterface&MockObject $loggerMock;
     private readonly PolicyFactory $policyFactory;
+    private readonly ReflectionClass $policyFactoryReflection;
 
     protected function setUp(): void
     {
@@ -35,7 +38,10 @@ class PolicyFactoryTest extends TestCase
 
         $this->policyFactoryReflection = new ReflectionClass($this->policyFactory);
         $this->policyFactoryReflection->getProperty('logger')->setValue($this->policyFactory, $this->loggerMock);
-        $this->policyFactoryReflection->getProperty('throwInvalidDirectiveException')->setValue($this->policyFactory, true);
+        $this->policyFactoryReflection->getProperty('throwInvalidDirectiveException')->setValue(
+            $this->policyFactory,
+            true
+        );
     }
 
     public function testCreateShouldReturnPolicyAndMergeCustomWithDefaultDirective(): void
@@ -116,7 +122,10 @@ class PolicyFactoryTest extends TestCase
     public function testCreateShouldLogInvalidDirectiveInProduction(): void
     {
         $nonceMock = $this->createMock(Nonce::class);
-        $this->policyFactoryReflection->getProperty('throwInvalidDirectiveException')->setValue($this->policyFactory, false);
+        $this->policyFactoryReflection->getProperty('throwInvalidDirectiveException')->setValue(
+            $this->policyFactory,
+            false
+        );
 
         $defaultDirective = [
             'invalid' => [
@@ -131,7 +140,10 @@ class PolicyFactoryTest extends TestCase
         $this->loggerMock->expects($this->once())->method('critical');
         $this->policyFactory->create($nonceMock, $defaultDirective, $customDirective);
 
-        $this->policyFactoryReflection->getProperty('throwInvalidDirectiveException')->setValue($this->policyFactory, true);
+        $this->policyFactoryReflection->getProperty('throwInvalidDirectiveException')->setValue(
+            $this->policyFactory,
+            true
+        );
     }
 
     public function testCreateShouldReturnPolicyWithUniqueValues(): void
