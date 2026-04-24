@@ -44,6 +44,12 @@ class CspHeaderMiddleware implements MiddlewareInterface
     protected array $configuration;
 
     /**
+     * @Flow\InjectConfiguration(path="policies")
+     * @var array<string, array<string, list<string>>>
+     */
+    protected array $policies;
+
+    /**
      * @inheritDoc
      * @throws InvalidDirectiveException
      * @throws DirectivesNormalizerException
@@ -73,16 +79,21 @@ class CspHeaderMiddleware implements MiddlewareInterface
      */
     private function getPolicyByCurrentContext(ServerRequestInterface $request): Policy
     {
-        /*
-         * There is no other way to know if we're in the backend here, we cannot inject
-         * Neos\Neos\Domain\Service\ContentContext at this point as it throws an error.
-         */
-        if (str_starts_with($request->getUri()->getPath(), '/neos')) {
-            return $this->policyFactory->create(
-                $this->nonce,
-                $this->configuration['backend'],
-                $this->configuration['custom-backend']
-            );
+        $path = $request->getUri()->getPath();
+
+        $backendUris = array_merge(
+            $this->policies['backend']['matchUris'] ?? [],
+            $this->policies['custom-backend']['matchUris'] ?? []
+        );
+
+        foreach ($backendUris as $pattern) {
+            if (preg_match('#' . $pattern . '#', $path)) {
+                return $this->policyFactory->create(
+                    $this->nonce,
+                    $this->configuration['backend'],
+                    $this->configuration['custom-backend']
+                );
+            }
         }
 
         return $this->policyFactory->create(

@@ -69,6 +69,12 @@ class CspHeaderMiddlewareTest extends TestCase
             ['backend' => [], 'custom-backend' => [], 'default' => [], 'custom' => [],]
         );
 
+        $reflectionProperty = $this->middlewareReflection->getProperty('policies');
+        $reflectionProperty->setValue(
+            $this->middleware,
+            ['backend' => ['matchUris' => ['^/neos']], 'custom-backend' => ['matchUris' => []]]
+        );
+
         $this->requestHandlerMock->expects($this->once())->method('handle')->willReturn($this->responseMock);
     }
 
@@ -108,6 +114,54 @@ class CspHeaderMiddlewareTest extends TestCase
         );
 
         $this->responseMock->expects($this->once())->method('withBody')->willReturnSelf();
+        $this->responseMock->expects($this->once())->method('withAddedHeader')->willReturnSelf();
+
+        $this->middleware->process($this->requestMock, $this->requestHandlerMock);
+    }
+
+    public function testProcessShouldUseBackendPolicyForCustomMatchUri(): void
+    {
+        $reflectionProperty = $this->middlewareReflection->getProperty('policies');
+        $reflectionProperty->setValue(
+            $this->middleware,
+            ['backend' => ['matchUris' => ['^/neos']], 'custom-backend' => ['matchUris' => ['^/monocle(/.*)?$']]]
+        );
+
+        $this->requestMock->expects($this->once())->method('getUri')->willReturn($this->uriMock);
+        $this->uriMock->expects($this->once())->method('getPath')->willReturn('/monocle/dashboard');
+
+        $this->policyFactoryMock->expects($this->once())->method('create')->willReturn($this->policyMock);
+        $this->policyMock->expects($this->once())->method('hasNonceDirectiveValue')->willReturn(false);
+        $this->responseMock->expects($this->once())->method('withAddedHeader')->willReturnSelf();
+
+        $this->middleware->process($this->requestMock, $this->requestHandlerMock);
+    }
+
+    public function testProcessShouldUseDefaultPolicyWhenNoMatchUriMatches(): void
+    {
+        $this->requestMock->expects($this->once())->method('getUri')->willReturn($this->uriMock);
+        $this->uriMock->expects($this->once())->method('getPath')->willReturn('/monocle/dashboard');
+
+        $this->policyFactoryMock->expects($this->once())->method('create')->willReturn($this->policyMock);
+        $this->policyMock->expects($this->once())->method('hasNonceDirectiveValue')->willReturn(false);
+        $this->responseMock->expects($this->once())->method('withAddedHeader')->willReturnSelf();
+
+        $this->middleware->process($this->requestMock, $this->requestHandlerMock);
+    }
+
+    public function testProcessShouldNotMatchNeosWhenBackendMatchUrisOverridden(): void
+    {
+        $reflectionProperty = $this->middlewareReflection->getProperty('policies');
+        $reflectionProperty->setValue(
+            $this->middleware,
+            ['backend' => ['matchUris' => ['^/other']], 'custom-backend' => ['matchUris' => []]]
+        );
+
+        $this->requestMock->expects($this->once())->method('getUri')->willReturn($this->uriMock);
+        $this->uriMock->expects($this->once())->method('getPath')->willReturn('/neos');
+
+        $this->policyFactoryMock->expects($this->once())->method('create')->willReturn($this->policyMock);
+        $this->policyMock->expects($this->once())->method('hasNonceDirectiveValue')->willReturn(false);
         $this->responseMock->expects($this->once())->method('withAddedHeader')->willReturnSelf();
 
         $this->middleware->process($this->requestMock, $this->requestHandlerMock);
