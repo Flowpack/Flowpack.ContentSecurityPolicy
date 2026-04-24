@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Flowpack\ContentSecurityPolicy\Http;
 
-use Exception;
 use Flowpack\ContentSecurityPolicy\Exceptions\DirectivesNormalizerException;
 use Flowpack\ContentSecurityPolicy\Exceptions\InvalidDirectiveException;
 use Flowpack\ContentSecurityPolicy\Factory\PolicyFactory;
@@ -12,11 +11,13 @@ use Flowpack\ContentSecurityPolicy\Helpers\TagHelper;
 use Flowpack\ContentSecurityPolicy\Model\Nonce;
 use Flowpack\ContentSecurityPolicy\Model\Policy;
 use GuzzleHttp\Psr7\Utils;
+use InvalidArgumentException;
 use Neos\Flow\Annotations as Flow;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Server\RequestHandlerInterface;
+use Psr\Log\LoggerInterface;
 
 class CspHeaderMiddleware implements MiddlewareInterface
 {
@@ -48,6 +49,17 @@ class CspHeaderMiddleware implements MiddlewareInterface
      * @var array<string, array<string, list<string>>>
      */
     protected array $policies;
+
+    // TODO: rename to throw-on-configuration-error in next major version
+    /**
+     * @Flow\InjectConfiguration(path="throw-invalid-directive-exception")
+     */
+    protected bool $throwInvalidDirectiveException;
+
+    /**
+     * @Flow\Inject
+     */
+    protected LoggerInterface $logger;
 
     /**
      * @inheritDoc
@@ -87,7 +99,16 @@ class CspHeaderMiddleware implements MiddlewareInterface
         );
 
         foreach ($backendUris as $pattern) {
-            if (preg_match('#' . $pattern . '#', $path)) {
+            $result = preg_match('#' . str_replace('#', '\#', $pattern) . '#', $path);
+            if ($result === false) {
+                $message = sprintf('Invalid matchUri pattern "%s": %s', $pattern, preg_last_error_msg());
+                if ($this->throwInvalidDirectiveException) {
+                    throw new InvalidArgumentException($message);
+                }
+                $this->logger->critical($message);
+                continue;
+            }
+            if ($result === 1) {
                 return $this->policyFactory->create(
                     $this->nonce,
                     $this->configuration['backend'],

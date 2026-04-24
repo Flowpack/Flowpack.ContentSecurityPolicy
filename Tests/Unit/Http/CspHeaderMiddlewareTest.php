@@ -17,6 +17,7 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\UriInterface;
 use Psr\Http\Server\RequestHandlerInterface;
+use Psr\Log\LoggerInterface;
 use ReflectionClass;
 use Throwable;
 
@@ -34,6 +35,7 @@ class CspHeaderMiddlewareTest extends TestCase
     private readonly UriInterface&MockObject $uriMock;
     private readonly PolicyFactory&MockObject $policyFactoryMock;
     private readonly Policy&MockObject $policyMock;
+    private readonly LoggerInterface&MockObject $loggerMock;
 
     /**
      * @throws Throwable
@@ -51,6 +53,7 @@ class CspHeaderMiddlewareTest extends TestCase
         $this->uriMock = $this->createMock(UriInterface::class);
         $this->policyFactoryMock = $this->createMock(PolicyFactory::class);
         $this->policyMock = $this->createMock(Policy::class);
+        $this->loggerMock = $this->createMock(LoggerInterface::class);
 
         $this->middlewareReflection = new ReflectionClass($this->middleware);
 
@@ -74,6 +77,12 @@ class CspHeaderMiddlewareTest extends TestCase
             $this->middleware,
             ['backend' => ['matchUris' => ['^/neos']], 'custom-backend' => ['matchUris' => []]]
         );
+
+        $reflectionProperty = $this->middlewareReflection->getProperty('throwInvalidDirectiveException');
+        $reflectionProperty->setValue($this->middleware, true);
+
+        $reflectionProperty = $this->middlewareReflection->getProperty('logger');
+        $reflectionProperty->setValue($this->middleware, $this->loggerMock);
 
         $this->requestHandlerMock->expects($this->once())->method('handle')->willReturn($this->responseMock);
     }
@@ -160,6 +169,44 @@ class CspHeaderMiddlewareTest extends TestCase
         $this->requestMock->expects($this->once())->method('getUri')->willReturn($this->uriMock);
         $this->uriMock->expects($this->once())->method('getPath')->willReturn('/neos');
 
+        $this->policyFactoryMock->expects($this->once())->method('create')->willReturn($this->policyMock);
+        $this->policyMock->expects($this->once())->method('hasNonceDirectiveValue')->willReturn(false);
+        $this->responseMock->expects($this->once())->method('withAddedHeader')->willReturnSelf();
+
+        $this->middleware->process($this->requestMock, $this->requestHandlerMock);
+    }
+
+    public function testProcessThrowsOnInvalidMatchUriPattern(): void
+    {
+        $reflectionProperty = $this->middlewareReflection->getProperty('policies');
+        $reflectionProperty->setValue(
+            $this->middleware,
+            ['backend' => ['matchUris' => ['^/neos(']], 'custom-backend' => ['matchUris' => []]]
+        );
+
+        $this->requestMock->expects($this->once())->method('getUri')->willReturn($this->uriMock);
+        $this->uriMock->expects($this->once())->method('getPath')->willReturn('/neos');
+
+        $this->expectException(\InvalidArgumentException::class);
+
+        $this->middleware->process($this->requestMock, $this->requestHandlerMock);
+    }
+
+    public function testProcessLogsInvalidMatchUriPatternInProduction(): void
+    {
+        $reflectionProperty = $this->middlewareReflection->getProperty('throwInvalidDirectiveException');
+        $reflectionProperty->setValue($this->middleware, false);
+
+        $reflectionProperty = $this->middlewareReflection->getProperty('policies');
+        $reflectionProperty->setValue(
+            $this->middleware,
+            ['backend' => ['matchUris' => ['^/neos(']], 'custom-backend' => ['matchUris' => []]]
+        );
+
+        $this->requestMock->expects($this->once())->method('getUri')->willReturn($this->uriMock);
+        $this->uriMock->expects($this->once())->method('getPath')->willReturn('/neos');
+
+        $this->loggerMock->expects($this->once())->method('critical');
         $this->policyFactoryMock->expects($this->once())->method('create')->willReturn($this->policyMock);
         $this->policyMock->expects($this->once())->method('hasNonceDirectiveValue')->willReturn(false);
         $this->responseMock->expects($this->once())->method('withAddedHeader')->willReturnSelf();
