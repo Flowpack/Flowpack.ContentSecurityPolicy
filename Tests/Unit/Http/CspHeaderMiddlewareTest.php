@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Unit\Http;
 
+use Exception;
 use Flowpack\ContentSecurityPolicy\Factory\PolicyFactory;
 use Flowpack\ContentSecurityPolicy\Helpers\TagHelper;
 use Flowpack\ContentSecurityPolicy\Http\CspHeaderMiddleware;
@@ -20,7 +21,6 @@ use Psr\Http\Server\RequestHandlerInterface;
 use Psr\Log\LoggerInterface;
 use ReflectionClass;
 use Throwable;
-
 use function PHPUnit\Framework\once;
 
 #[CoversClass(CspHeaderMiddleware::class)]
@@ -187,9 +187,20 @@ class CspHeaderMiddlewareTest extends TestCase
         $this->requestMock->expects($this->once())->method('getUri')->willReturn($this->uriMock);
         $this->uriMock->expects($this->once())->method('getPath')->willReturn('/neos');
 
-        $this->expectException(\InvalidArgumentException::class);
+        /*
+         * preg_match emmits a warning which makes phpunit fail, so we convert warnings to errors and expect an exception
+         * as we cannot expect warnings
+         */
+        set_error_handler(static function (int $errorCode, string $errorString): never {
+            throw new Exception($errorString, $errorCode);
+        }, E_WARNING);
+        $this->expectExceptionMessage('Compilation failed');
 
-        $this->middleware->process($this->requestMock, $this->requestHandlerMock);
+        try {
+            $this->middleware->process($this->requestMock, $this->requestHandlerMock);
+        } finally {
+            restore_error_handler();
+        }
     }
 
     public function testProcessLogsInvalidMatchUriPatternInProduction(): void
@@ -211,6 +222,18 @@ class CspHeaderMiddlewareTest extends TestCase
         $this->policyMock->expects($this->once())->method('hasNonceDirectiveValue')->willReturn(false);
         $this->responseMock->expects($this->once())->method('withAddedHeader')->willReturnSelf();
 
-        $this->middleware->process($this->requestMock, $this->requestHandlerMock);
+        /*
+         * preg_match emmits a warning which makes phpunit fail, so we suppress the warning that would make phpunit
+         * fail
+         */
+        set_error_handler(static function (): bool {
+            return true;
+        }, E_WARNING);
+
+        try {
+            $this->middleware->process($this->requestMock, $this->requestHandlerMock);
+        } finally {
+            restore_error_handler();
+        }
     }
 }
