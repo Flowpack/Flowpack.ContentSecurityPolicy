@@ -1,17 +1,17 @@
 # Flowpack.ContentSecurityPolicy
 
 <!-- TOC -->
-
 * [Flowpack.ContentSecurityPolicy](#flowpackcontentsecuritypolicy)
-    * [Introduction](#introduction)
-    * [Usage](#usage)
-    * [Custom directives and values](#custom-directives-and-values)
-        * [Show CSP configuration](#show-csp-configuration)
-    * [Disable or report only](#disable-or-report-only)
-    * [Nonce](#nonce)
-    * [Backend](#backend)
-    * [Thank you](#thank-you)
-
+  * [Introduction](#introduction)
+  * [Usage](#usage)
+  * [Deprecated Configuration](#deprecated-configuration)
+  * [Custom directives and values](#custom-directives-and-values)
+    * [Show CSP configuration](#show-csp-configuration)
+  * [Disable or report only](#disable-or-report-only)
+  * [Nonce](#nonce)
+  * [Backend](#backend)
+    * [Custom backend routes](#custom-backend-routes)
+  * [Thank you](#thank-you)
 <!-- TOC -->
 
 ## Introduction
@@ -189,6 +189,24 @@ Flowpack:
 Unsafe inline scripts and styles are allowed in the backend because otherwise the backend won't work.
 
 Again you can add your own policies in the custom-backend array the same way as the custom array for the frontend.
+
+### Custom backend routes
+
+By default, the backend policy is applied to all paths starting with `/neos`. If you have additional routes that require
+the same permissive policy (e.g. a custom admin UI at `/monocle`), add them to `custom-backend.matchUris`. Each entry
+is a PHP regex (without delimiters) matched against the request path.
+
+```yaml
+Flowpack:
+  ContentSecurityPolicy:
+    policies:
+      custom-backend:
+        matchUris:
+          - '^/monocle(/.*)?$'
+```
+
+The built-in `'^/neos'` pattern in `backend.matchUris` is unaffected, so the Neos backend continues to work without any
+changes. You only need to touch `backend.matchUris` if you want to replace the default `/neos` match entirely.
 
 ## Thank you
 

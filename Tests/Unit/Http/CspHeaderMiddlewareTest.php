@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Unit\Http;
 
+use Exception;
 use Flowpack\ContentSecurityPolicy\Factory\PolicyFactory;
 use Flowpack\ContentSecurityPolicy\Helpers\TagHelper;
 use Flowpack\ContentSecurityPolicy\Http\CspHeaderMiddleware;
@@ -17,9 +18,9 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\UriInterface;
 use Psr\Http\Server\RequestHandlerInterface;
+use Psr\Log\LoggerInterface;
 use ReflectionClass;
 use Throwable;
-
 use function PHPUnit\Framework\once;
 
 #[CoversClass(CspHeaderMiddleware::class)]
@@ -34,6 +35,7 @@ class CspHeaderMiddlewareTest extends TestCase
     private readonly UriInterface&MockObject $uriMock;
     private readonly PolicyFactory&MockObject $policyFactoryMock;
     private readonly Policy&MockObject $policyMock;
+    private readonly LoggerInterface&MockObject $loggerMock;
 
     /**
      * @throws Throwable
@@ -51,6 +53,7 @@ class CspHeaderMiddlewareTest extends TestCase
         $this->uriMock = $this->createMock(UriInterface::class);
         $this->policyFactoryMock = $this->createMock(PolicyFactory::class);
         $this->policyMock = $this->createMock(Policy::class);
+        $this->loggerMock = $this->createMock(LoggerInterface::class);
 
         $this->middlewareReflection = new ReflectionClass($this->middleware);
 
@@ -68,6 +71,18 @@ class CspHeaderMiddlewareTest extends TestCase
             $this->middleware,
             ['backend' => [], 'custom-backend' => [], 'default' => [], 'custom' => [],]
         );
+
+        $reflectionProperty = $this->middlewareReflection->getProperty('policies');
+        $reflectionProperty->setValue(
+            $this->middleware,
+            ['backend' => ['matchUris' => ['^/neos']], 'custom-backend' => ['matchUris' => []]]
+        );
+
+        $reflectionProperty = $this->middlewareReflection->getProperty('throwInvalidDirectiveException');
+        $reflectionProperty->setValue($this->middleware, true);
+
+        $reflectionProperty = $this->middlewareReflection->getProperty('logger');
+        $reflectionProperty->setValue($this->middleware, $this->loggerMock);
 
         $this->requestHandlerMock->expects($this->once())->method('handle')->willReturn($this->responseMock);
     }
@@ -111,5 +126,114 @@ class CspHeaderMiddlewareTest extends TestCase
         $this->responseMock->expects($this->once())->method('withAddedHeader')->willReturnSelf();
 
         $this->middleware->process($this->requestMock, $this->requestHandlerMock);
+    }
+
+    public function testProcessShouldUseBackendPolicyForCustomMatchUri(): void
+    {
+        $reflectionProperty = $this->middlewareReflection->getProperty('policies');
+        $reflectionProperty->setValue(
+            $this->middleware,
+            ['backend' => ['matchUris' => ['^/neos']], 'custom-backend' => ['matchUris' => ['^/monocle(/.*)?$']]]
+        );
+
+        $this->requestMock->expects($this->once())->method('getUri')->willReturn($this->uriMock);
+        $this->uriMock->expects($this->once())->method('getPath')->willReturn('/monocle/dashboard');
+
+        $this->policyFactoryMock->expects($this->once())->method('create')->willReturn($this->policyMock);
+        $this->policyMock->expects($this->once())->method('hasNonceDirectiveValue')->willReturn(false);
+        $this->responseMock->expects($this->once())->method('withAddedHeader')->willReturnSelf();
+
+        $this->middleware->process($this->requestMock, $this->requestHandlerMock);
+    }
+
+    public function testProcessShouldUseDefaultPolicyWhenNoMatchUriMatches(): void
+    {
+        $this->requestMock->expects($this->once())->method('getUri')->willReturn($this->uriMock);
+        $this->uriMock->expects($this->once())->method('getPath')->willReturn('/monocle/dashboard');
+
+        $this->policyFactoryMock->expects($this->once())->method('create')->willReturn($this->policyMock);
+        $this->policyMock->expects($this->once())->method('hasNonceDirectiveValue')->willReturn(false);
+        $this->responseMock->expects($this->once())->method('withAddedHeader')->willReturnSelf();
+
+        $this->middleware->process($this->requestMock, $this->requestHandlerMock);
+    }
+
+    public function testProcessShouldNotMatchNeosWhenBackendMatchUrisOverridden(): void
+    {
+        $reflectionProperty = $this->middlewareReflection->getProperty('policies');
+        $reflectionProperty->setValue(
+            $this->middleware,
+            ['backend' => ['matchUris' => ['^/other']], 'custom-backend' => ['matchUris' => []]]
+        );
+
+        $this->requestMock->expects($this->once())->method('getUri')->willReturn($this->uriMock);
+        $this->uriMock->expects($this->once())->method('getPath')->willReturn('/neos');
+
+        $this->policyFactoryMock->expects($this->once())->method('create')->willReturn($this->policyMock);
+        $this->policyMock->expects($this->once())->method('hasNonceDirectiveValue')->willReturn(false);
+        $this->responseMock->expects($this->once())->method('withAddedHeader')->willReturnSelf();
+
+        $this->middleware->process($this->requestMock, $this->requestHandlerMock);
+    }
+
+    public function testProcessThrowsOnInvalidMatchUriPattern(): void
+    {
+        $reflectionProperty = $this->middlewareReflection->getProperty('policies');
+        $reflectionProperty->setValue(
+            $this->middleware,
+            ['backend' => ['matchUris' => ['^/neos(']], 'custom-backend' => ['matchUris' => []]]
+        );
+
+        $this->requestMock->expects($this->once())->method('getUri')->willReturn($this->uriMock);
+        $this->uriMock->expects($this->once())->method('getPath')->willReturn('/neos');
+
+        /*
+         * preg_match emmits a warning which makes phpunit fail, so we convert warnings to errors and expect an exception
+         * as we cannot expect warnings
+         */
+        set_error_handler(static function (int $errorCode, string $errorString): never {
+            throw new Exception($errorString, $errorCode);
+        }, E_WARNING);
+        $this->expectExceptionMessage('Compilation failed');
+
+        try {
+            $this->middleware->process($this->requestMock, $this->requestHandlerMock);
+        } finally {
+            restore_error_handler();
+        }
+    }
+
+    public function testProcessLogsInvalidMatchUriPatternInProduction(): void
+    {
+        $reflectionProperty = $this->middlewareReflection->getProperty('throwInvalidDirectiveException');
+        $reflectionProperty->setValue($this->middleware, false);
+
+        $reflectionProperty = $this->middlewareReflection->getProperty('policies');
+        $reflectionProperty->setValue(
+            $this->middleware,
+            ['backend' => ['matchUris' => ['^/neos(']], 'custom-backend' => ['matchUris' => []]]
+        );
+
+        $this->requestMock->expects($this->once())->method('getUri')->willReturn($this->uriMock);
+        $this->uriMock->expects($this->once())->method('getPath')->willReturn('/neos');
+
+        $this->loggerMock->expects($this->once())->method('critical');
+        $this->policyFactoryMock->expects($this->once())->method('create')->willReturn($this->policyMock);
+        $this->policyMock->expects($this->once())->method('hasNonceDirectiveValue')->willReturn(false);
+        $this->responseMock->expects($this->once())->method('withAddedHeader')->willReturnSelf();
+
+        /*
+         * preg_match emmits a warning which makes phpunit fail, so we suppress the warning that would make phpunit
+         * fail
+         */
+        set_error_handler(static function (): bool {
+            return true;
+        }, E_WARNING);
+
+        try {
+            $this->middleware->process($this->requestMock, $this->requestHandlerMock);
+        } finally {
+            restore_error_handler();
+        }
     }
 }

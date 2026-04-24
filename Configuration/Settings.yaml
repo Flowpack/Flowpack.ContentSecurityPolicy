@@ -67,6 +67,12 @@ Flowpack:
           'self': true
           'data:': true
       custom-backend: [ ]
+    policies:
+      backend:
+        matchUris:
+          - '^/neos'
+      custom-backend:
+        matchUris: []
 
 Neos:
   Neos:
