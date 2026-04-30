@@ -50,11 +50,10 @@ class CspHeaderMiddleware implements MiddlewareInterface
      */
     protected array $policies;
 
-    // TODO: rename to throw-on-configuration-error in next major version
     /**
-     * @Flow\InjectConfiguration(path="throw-invalid-directive-exception")
+     * @Flow\InjectConfiguration(path="throw-exception-on-configuration-error")
      */
-    protected bool $throwInvalidDirectiveException;
+    protected bool $throwExceptionOnConfigurationError;
 
     /**
      * @Flow\Inject
@@ -69,7 +68,7 @@ class CspHeaderMiddleware implements MiddlewareInterface
     public function process(ServerRequestInterface $request, RequestHandlerInterface $handler): ResponseInterface
     {
         $response = $handler->handle($request);
-        if (! $this->enabled) {
+        if (!$this->enabled) {
             return $response;
         }
 
@@ -102,7 +101,7 @@ class CspHeaderMiddleware implements MiddlewareInterface
             $result = preg_match('#' . str_replace('#', '\#', $pattern) . '#', $path);
             if ($result === false) {
                 $message = sprintf('Invalid matchUri pattern "%s": %s', $pattern, preg_last_error_msg());
-                if ($this->throwInvalidDirectiveException) {
+                if ($this->throwExceptionOnConfigurationError) {
                     throw new InvalidArgumentException($message);
                 }
                 $this->logger->critical($message);
@@ -141,14 +140,14 @@ class CspHeaderMiddleware implements MiddlewareInterface
     }
 
     /**
-     * @param  string[]  $tagNames
+     * @param string[] $tagNames
      */
     private function checkTagAndReplaceUsingACallback(
         array $tagNames,
         string $contentMarkup,
         callable $hitCallback
     ): string {
-        $regex = '/<('.implode('|', $tagNames).').*?>/';
+        $regex = '/<(' . implode('|', $tagNames) . ').*?>/';
 
         return preg_replace_callback(
             $regex,

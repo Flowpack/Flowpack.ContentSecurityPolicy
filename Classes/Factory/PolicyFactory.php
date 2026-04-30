@@ -18,9 +18,9 @@ use Psr\Log\LoggerInterface;
 class PolicyFactory
 {
     /**
-     * @Flow\InjectConfiguration(path="throw-invalid-directive-exception")
+     * @Flow\InjectConfiguration(path="throw-exception-on-configuration-error")
      */
-    protected bool $throwInvalidDirectiveException;
+    protected bool $throwExceptionOnConfigurationError;
 
     /**
      * @Flow\Inject
@@ -60,15 +60,14 @@ class PolicyFactory
         foreach ($resultDirectives as $directive => $values) {
             try {
                 $policy->addDirective($directive, $values);
-            } catch (InvalidDirectiveException $e
-            ) {
-                if ($this->throwInvalidDirectiveException) {
+            } catch (InvalidDirectiveException $exception) {
+                if ($this->throwExceptionOnConfigurationError) {
                     // For development we want to make sure directives are configured correctly.
-                    throw $e;
+                    throw $exception;
                 } else {
                     // In production we just log the error and continue. If a directive is invalid, we still
                     // want to apply the rest of the policy.
-                    $this->logger->critical($e->getMessage());
+                    $this->logger->critical($exception->getMessage());
                     continue;
                 }
             }
