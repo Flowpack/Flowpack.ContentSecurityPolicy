@@ -1,16 +1,19 @@
 # Flowpack.ContentSecurityPolicy
 
 <!-- TOC -->
+
 * [Flowpack.ContentSecurityPolicy](#flowpackcontentsecuritypolicy)
-  * [Introduction](#introduction)
-  * [Usage](#usage)
-  * [Custom directives and values](#custom-directives-and-values)
-    * [Show CSP configuration](#show-csp-configuration)
-  * [Disable or report only](#disable-or-report-only)
-  * [Nonce](#nonce)
-  * [Backend](#backend)
-    * [Custom backend routes](#custom-backend-routes)
-  * [Thank you](#thank-you)
+    * [Introduction](#introduction)
+    * [Usage](#usage)
+    * [Custom directives and values](#custom-directives-and-values)
+        * [Show CSP configuration](#show-csp-configuration)
+    * [Configuration errors](#configuration-errors)
+    * [Disable or report only](#disable-or-report-only)
+    * [Nonce](#nonce)
+    * [Backend](#backend)
+        * [Custom backend routes](#custom-backend-routes)
+    * [Thank you](#thank-you)
+
 <!-- TOC -->
 
 ## Introduction
@@ -93,6 +96,20 @@ If you fully want to override the entire default config then just override the d
 
 To show the parsed configuration, the built-in command `./flow cspconfig:show` can be used.
 It shows all directives used by the frontend and the backend.
+
+## Throwing exceptions on configuration errors
+
+By default, in production, invalid directives are logged as critical errors and skipped so the rest of the policy is
+still applied.
+Also invalid custom backend routes are logged and ignored in production.
+In development, exceptions are throw instead, which surfaces misconfiguration immediately.
+You can change that behavior like this:
+
+```yaml
+Flowpack:
+  ContentSecurityPolicy:
+    throw-exception-on-configuration-error: true
+```
 
 ## Disable or report only
 

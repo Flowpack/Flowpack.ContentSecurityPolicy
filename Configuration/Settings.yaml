@@ -2,7 +2,7 @@ Flowpack:
   ContentSecurityPolicy:
     enabled: true
     report-only: false
-    throw-invalid-directive-exception: true
+    throw-exception-on-configuration-error: true
     content-security-policy:
       default:
         base-uri:

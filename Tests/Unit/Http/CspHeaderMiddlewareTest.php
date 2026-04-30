@@ -21,6 +21,7 @@ use Psr\Http\Server\RequestHandlerInterface;
 use Psr\Log\LoggerInterface;
 use ReflectionClass;
 use Throwable;
+
 use function PHPUnit\Framework\once;
 
 #[CoversClass(CspHeaderMiddleware::class)]
@@ -78,7 +79,7 @@ class CspHeaderMiddlewareTest extends TestCase
             ['backend' => ['matchUris' => ['^/neos']], 'custom-backend' => ['matchUris' => []]]
         );
 
-        $reflectionProperty = $this->middlewareReflection->getProperty('throwInvalidDirectiveException');
+        $reflectionProperty = $this->middlewareReflection->getProperty('throwExceptionOnConfigurationError');
         $reflectionProperty->setValue($this->middleware, true);
 
         $reflectionProperty = $this->middlewareReflection->getProperty('logger');
@@ -205,7 +206,7 @@ class CspHeaderMiddlewareTest extends TestCase
 
     public function testProcessLogsInvalidMatchUriPatternInProduction(): void
     {
-        $reflectionProperty = $this->middlewareReflection->getProperty('throwInvalidDirectiveException');
+        $reflectionProperty = $this->middlewareReflection->getProperty('throwExceptionOnConfigurationError');
         $reflectionProperty->setValue($this->middleware, false);
 
         $reflectionProperty = $this->middlewareReflection->getProperty('policies');

@@ -38,7 +38,7 @@ class PolicyFactoryTest extends TestCase
 
         $this->policyFactoryReflection = new ReflectionClass($this->policyFactory);
         $this->policyFactoryReflection->getProperty('logger')->setValue($this->policyFactory, $this->loggerMock);
-        $this->policyFactoryReflection->getProperty('throwInvalidDirectiveException')->setValue(
+        $this->policyFactoryReflection->getProperty('throwExceptionOnConfigurationError')->setValue(
             $this->policyFactory,
             true
         );
@@ -100,7 +100,7 @@ class PolicyFactoryTest extends TestCase
     public function testCreateShouldLogInvalidDirectiveInProduction(): void
     {
         $nonceMock = $this->createMock(Nonce::class);
-        $this->policyFactoryReflection->getProperty('throwInvalidDirectiveException')->setValue(
+        $this->policyFactoryReflection->getProperty('throwExceptionOnConfigurationError')->setValue(
             $this->policyFactory,
             false
         );
@@ -114,7 +114,7 @@ class PolicyFactoryTest extends TestCase
         $this->loggerMock->expects($this->once())->method('critical');
         $this->policyFactory->create($nonceMock, $defaultDirective, $customDirective);
 
-        $this->policyFactoryReflection->getProperty('throwInvalidDirectiveException')->setValue(
+        $this->policyFactoryReflection->getProperty('throwExceptionOnConfigurationError')->setValue(
             $this->policyFactory,
             true
         );
