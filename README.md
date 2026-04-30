@@ -7,7 +7,7 @@
     * [Usage](#usage)
     * [Custom directives and values](#custom-directives-and-values)
         * [Show CSP configuration](#show-csp-configuration)
-    * [Configuration errors](#configuration-errors)
+    * [Throwing exceptions on configuration errors](#throwing-exceptions-on-configuration-errors)
     * [Disable or report only](#disable-or-report-only)
     * [Nonce](#nonce)
     * [Backend](#backend)
