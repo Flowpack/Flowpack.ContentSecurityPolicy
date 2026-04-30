@@ -4,7 +4,6 @@
 * [Flowpack.ContentSecurityPolicy](#flowpackcontentsecuritypolicy)
   * [Introduction](#introduction)
   * [Usage](#usage)
-  * [Deprecated Configuration](#deprecated-configuration)
   * [Custom directives and values](#custom-directives-and-values)
     * [Show CSP configuration](#show-csp-configuration)
   * [Disable or report only](#disable-or-report-only)
@@ -69,24 +68,6 @@ Flowpack:
 
 Now only resources from the same origin are allowed for the most common directives.
 It is enabled by default and the report-only mode is disabled.
-
-## Deprecated Configuration
-
-Make sure to change any old configuration to the new object format. **Support for the old list format will be removed in future versions.**
-
-The new config allows to merge configurations from different packages/yaml files.
-
-```yaml
-frame-src:
-    # Deprecated list format
-    # - 'https://www.youtube.com':
-    # - 'https://staticxx.facebook.com':
-    
-    # New object format
-    'https://www.youtube.com': true
-    'https://staticxx.facebook.com': true
-```
-
 
 ## Custom directives and values
 

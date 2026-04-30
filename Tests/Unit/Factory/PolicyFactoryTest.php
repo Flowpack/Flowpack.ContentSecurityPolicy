@@ -49,32 +49,19 @@ class PolicyFactoryTest extends TestCase
         $nonceMock = $this->createMock(Nonce::class);
 
         $defaultDirective = [
-            'base-uri' => [
-                'test.com',
-            ],
-            'script-src' => [
-                'test.com',
-            ],
+            'base-uri' => ['test.com' => true],
+            'script-src' => ['test.com' => true],
         ];
         $customDirective = [
-            'script-src' => [
-                'custom.com',
-            ],
-        ];
-
-        $expected = [
-            'base-uri' => [
-                'test.com',
-            ],
-            'script-src' => [
-                'test.com',
-                'custom.com',
-            ],
+            'script-src' => ['custom.com' => true],
         ];
 
         $result = $this->policyFactory->create($nonceMock, $defaultDirective, $customDirective);
 
-        self::assertSame($expected, $result->getDirectives());
+        self::assertSame([
+            'base-uri' => ['test.com'],
+            'script-src' => ['test.com', 'custom.com'],
+        ], $result->getDirectives());
     }
 
     public function testCreateShouldReturnPolicyAndHandleSpecialDirectives(): void
@@ -83,22 +70,17 @@ class PolicyFactoryTest extends TestCase
 
         $defaultDirective = [
             'script-src' => [
-                '{nonce}',
-                'self',
+                '{nonce}' => true,
+                'self' => true,
             ],
         ];
         $customDirective = [];
 
-        $expected = [
-            'script-src' => [
-                "'nonce-'",
-                "'self'",
-            ],
-        ];
-
         $result = $this->policyFactory->create($nonceMock, $defaultDirective, $customDirective);
 
-        self::assertSame($expected, $result->getDirectives());
+        self::assertSame([
+            'script-src' => ["'nonce-'", "'self'"],
+        ], $result->getDirectives());
     }
 
     public function testCreateShouldFailWithInvalidDirective(): void
@@ -106,12 +88,8 @@ class PolicyFactoryTest extends TestCase
         $nonceMock = $this->createMock(Nonce::class);
 
         $defaultDirective = [
-            'invalid' => [
-                'self',
-            ],
-            'script-src' => [
-                'self',
-            ],
+            'invalid' => ['self' => true],
+            'script-src' => ['self' => true],
         ];
         $customDirective = [];
 
@@ -128,12 +106,8 @@ class PolicyFactoryTest extends TestCase
         );
 
         $defaultDirective = [
-            'invalid' => [
-                'self',
-            ],
-            'script-src' => [
-                'self',
-            ],
+            'invalid' => ['self' => true],
+            'script-src' => ['self' => true],
         ];
         $customDirective = [];
 
@@ -151,35 +125,20 @@ class PolicyFactoryTest extends TestCase
         $nonceMock = $this->createMock(Nonce::class);
 
         $defaultDirective = [
-            'base-uri' => [
-                'test.com',
-            ],
-            'script-src' => [
-                'test.com',
-            ],
+            'base-uri' => ['test.com' => true],
+            'script-src' => ['test.com' => true],
         ];
         $customDirective = [
-            'base-uri' => [
-                'test.com',
-                'test.com',
-            ],
-            'script-src' => [
-                'test.com',
-            ],
-        ];
-
-        $expected = [
-            'base-uri' => [
-                'test.com',
-            ],
-            'script-src' => [
-                'test.com',
-            ],
+            'base-uri' => ['test.com' => true],
+            'script-src' => ['test.com' => true],
         ];
 
         $result = $this->policyFactory->create($nonceMock, $defaultDirective, $customDirective);
 
-        self::assertSame($expected, $result->getDirectives());
+        self::assertSame([
+            'base-uri' => ['test.com'],
+            'script-src' => ['test.com'],
+        ], $result->getDirectives());
     }
 
     public function testCreateShouldAddDirectiveWhichIsPresentInCustomButNotDefaultConfiguration(): void
@@ -187,33 +146,19 @@ class PolicyFactoryTest extends TestCase
         $nonceMock = $this->createMock(Nonce::class);
 
         $defaultDirective = [
-            'base-uri' => [
-                'test.com',
-            ],
-            'script-src' => [
-                'test.com',
-            ],
+            'base-uri' => ['test.com' => true],
+            'script-src' => ['test.com' => true],
         ];
         $customDirective = [
-            'worker-src' => [
-                'test.com',
-            ],
-        ];
-
-        $expected = [
-            'base-uri' => [
-                "test.com",
-            ],
-            'script-src' => [
-                "test.com",
-            ],
-            'worker-src' => [
-                "test.com",
-            ],
+            'worker-src' => ['test.com' => true],
         ];
 
         $result = $this->policyFactory->create($nonceMock, $defaultDirective, $customDirective);
 
-        self::assertSame($expected, $result->getDirectives());
+        self::assertSame([
+            'base-uri' => ['test.com'],
+            'script-src' => ['test.com'],
+            'worker-src' => ['test.com'],
+        ], $result->getDirectives());
     }
 }
