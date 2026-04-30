@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Unit\Helpers;
+namespace Flowpack\ContentSecurityPolicy\Tests\Unit\Helpers;
 
 use Flowpack\ContentSecurityPolicy\Helpers\TagHelper;
 use PHPUnit\Framework\Attributes\CoversClass;

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Unit\Model;
+namespace Flowpack\ContentSecurityPolicy\Tests\Unit\Model;
 
 use Flowpack\ContentSecurityPolicy\Model\Nonce;
 use PHPUnit\Framework\Attributes\CoversClass;

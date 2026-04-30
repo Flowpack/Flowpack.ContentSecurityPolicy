@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Unit\Http;
+namespace Flowpack\ContentSecurityPolicy\Tests\Unit\Http;
 
 use Exception;
 use Flowpack\ContentSecurityPolicy\Factory\PolicyFactory;

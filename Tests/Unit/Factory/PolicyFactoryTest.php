@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Unit\Factory;
+namespace Flowpack\ContentSecurityPolicy\Tests\Unit\Factory;
 
 use Flowpack\ContentSecurityPolicy\Exceptions\InvalidDirectiveException;
 use Flowpack\ContentSecurityPolicy\Factory\PolicyFactory;
