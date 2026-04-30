@@ -33,15 +33,15 @@ class PolicyFactory
      */
 
     /**
-     * @param array<string, array<string|int, string|bool>> $defaultDirectives
-     * @param array<string, array<string|int, string|bool>> $customDirectives
+     * @param array<string, array<int|string, mixed>|null> $defaultDirectives
+     * @param array<string, array<int|string, mixed>|null> $customDirectives
      * @throws InvalidDirectiveException
      * @throws DirectivesNormalizerException
      */
     public function create(Nonce $nonce, array $defaultDirectives, array $customDirectives): Policy
     {
-        $normalizedDefaultDirectives = DirectivesNormalizer::normalize($defaultDirectives, $this->logger);
-        $normalizedCustomDirectives = DirectivesNormalizer::normalize($customDirectives, $this->logger);
+        $normalizedDefaultDirectives = DirectivesNormalizer::normalize($defaultDirectives);
+        $normalizedCustomDirectives = DirectivesNormalizer::normalize($customDirectives);
 
         $resultDirectives = $normalizedDefaultDirectives;
         foreach ($normalizedCustomDirectives as $key => $customDirective) {
